@@ -14,14 +14,15 @@ export const maxDuration = 300; // This function can run for a maximum of 300 se
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     connectToDB();
 
     const products = await Product.find({});
-    if (!products) throw new Error('Mo Products found');
 
-    // 1: SCRAPE LATEST PRODUCT DETAILS & UPDATE DB
+    if (!products) throw new Error('No product fetched');
+
+    // ======================== 1 SCRAPE LATEST PRODUCT DETAILS & UPDATE DB
     const updatedProducts = await Promise.all(
       products.map(async (currentProduct) => {
         // Scrape product
@@ -52,7 +53,7 @@ export async function GET() {
           product
         );
 
-        // 2 CHEHCK EACH PRODUCT"S STATUS AND SEND
+        // ======================== 2 CHECK EACH PRODUCT'S STATUS & SEND EMAIL ACCORDINGLY
         const emailNotifType = getEmailNotifType(
           scrapedProduct,
           currentProduct
@@ -84,7 +85,7 @@ export async function GET() {
       message: 'Ok',
       data: updatedProducts,
     });
-  } catch (error) {
-    throw new Error(`Error in GET: ${error}`);
+  } catch (error: any) {
+    throw new Error(`Failed to get all products: ${error.message}`);
   }
 }
